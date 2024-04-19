@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -21,9 +20,30 @@ function App() {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen name="Login" component={LoginPage} />
-          <Stack.Screen name="Transactions" component={TransactionsPage} />
+        <Stack.Navigator 
+          initialRouteName="Login" 
+          screenOptions={{
+            headerTitleAlign: 'center',
+            headerStyle: {
+              backgroundColor: '#fff',
+            },
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}>
+          <Stack.Screen 
+            name="Login" 
+            component={LoginPage} 
+            options={{
+              title: 'Login',
+            }} />
+          <Stack.Screen 
+            name="Transactions" 
+            component={TransactionsPage} 
+            options={{
+              title: 'Transactions',
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
