@@ -11,7 +11,7 @@ Clone the repository:
 
 bash
 Copy code
-git clone <repository-url>
+git clone https://github.com/user-king/finance-app.git
 Navigate to the project directory:
 
 bash
@@ -38,6 +38,7 @@ For Android:
 bash
 Copy code
 npx react-native run-android
+
 Functionalities
 Add Transactions: Users can add income and expense transactions with categories, amounts, and dates.
 View Transactions: Transactions are displayed in a list, categorized for easy viewing.
