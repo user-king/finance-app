@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Alert, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { addTransaction, loadTransaction } from '../store/actions';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { TextInput, Button, Switch, Card, DataTable } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BarChart } from 'react-native-chart-kit';
 
 
 const TransactionsPage = () => {
@@ -19,7 +20,21 @@ const TransactionsPage = () => {
 
   const dispatch = useDispatch();
   const transactions = useSelector(state => state.transactions);
-  
+
+  const chartData = {
+    labels: transactions.map(transaction => transaction.date),
+    datasets: [
+      {
+        data: transactions.map(transaction => transaction.amount),
+        color: (opacity = 1) => `rgba(0, 128, 0, ${opacity})`,
+      },
+      {
+        data: transactions.map(transaction => -transaction.amount),
+        color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
+      },
+    ],
+  };
+
   useEffect(() => {
     const loadTransactions = async () => {
       try {
@@ -34,7 +49,7 @@ const TransactionsPage = () => {
 
     loadTransactions();
   }, []);
-  
+
 
   useEffect(() => {
     const income = transactions?.filter(transaction => transaction?.type === 'income').reduce((total, transaction) => total + transaction.amount, 0);
@@ -69,82 +84,107 @@ const TransactionsPage = () => {
 
   return (
     <>
-     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <View style={{ padding: 20 }}>
-        <Text style={{ fontSize: 24, marginBottom: 10 }}>Transactions</Text>
-        <Card style={{ marginBottom: 20 }}>
-          <Card.Content>
-            <TextInput
-              label="Category"
-              value={category}
-              onChangeText={text => setCategory(text)}
-            />
-            <TextInput
-              label="Amount"
-              value={amount}
-              onChangeText={text => setAmount(text)}
-              keyboardType="numeric"
-            />
-            {!date && (
-              <Button onPress={() => setShowDatePicker(true)}>Select Date</Button>
-            )}
-            {date && (
-              <Text>{date.toISOString().split('T')[0]}</Text>
-            )}
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={date || new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  setDate(selectedDate || date)
-                }
-                }
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={{ padding: 20 }}>
+          <Text style={{ fontSize: 24, marginBottom: 10 }}>Transactions</Text>
+          <Card style={{ marginBottom: 20 }}>
+            <Card.Content>
+              <TextInput
+                label="Category"
+                value={category}
+                onChangeText={text => setCategory(text)}
               />
-            )}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-              <Switch
-                value={isIncome}
-                onValueChange={setIsIncome}
-                style={{ marginRight: 10 }}
+              <TextInput
+                label="Amount"
+                value={amount}
+                onChangeText={text => setAmount(text)}
+                keyboardType="numeric"
               />
-              <Text>{isIncome ? 'Income' : 'Expense'}</Text>
-            </View>
-          </Card.Content>
-          <Card.Actions>
-            <Button onPress={handleAddTransaction}>{isIncome ? 'Income' : 'Add Transaction'}</Button>
-          </Card.Actions>
-        </Card>
+              {!date && (
+                <Button onPress={() => setShowDatePicker(true)}>Select Date</Button>
+              )}
+              {date && (
+                <Text>{date.toISOString().split('T')[0]}</Text>
+              )}
 
-        <Card style={{ marginBottom: 20 }}>
-          <Card.Content>
-            <DataTable>
-              <DataTable.Header>
-                <DataTable.Title>Category</DataTable.Title>
-                <DataTable.Title numeric>Amount </DataTable.Title>
-                <DataTable.Title>Date</DataTable.Title>
-              </DataTable.Header>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={date || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(false);
+                    setDate(selectedDate || date)
+                  }
+                  }
+                />
+              )}
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                <Switch
+                  value={isIncome}
+                  onValueChange={setIsIncome}
+                  style={{ marginRight: 10 }}
+                />
+                <Text>{isIncome ? 'Income' : 'Expense'}</Text>
+              </View>
+            </Card.Content>
+            <Card.Actions>
+              <Button onPress={handleAddTransaction}>{isIncome ? 'Income' : 'Add Transaction'}</Button>
+            </Card.Actions>
+          </Card>
 
-              {transactions?.map((transaction, index) => (
-                <DataTable.Row key={index}>
-                  <DataTable.Cell>{transaction?.category}</DataTable.Cell>
-                  <DataTable.Cell numeric>${transaction?.amount}  </DataTable.Cell>
-                  <DataTable.Cell>{transaction?.date}</DataTable.Cell>
-                </DataTable.Row>
-              ))}
-            </DataTable>
-          </Card.Content>
-        </Card>
+          {/* Bar Chart */}
+          <BarChart
+            style={styles.chart}
+            data={chartData}
+            width={Dimensions.get('window').width - 20}
+            height={200}
+            yAxisLabel="$"
+            yAxisSuffix=""
+            chartConfig={chartConfig}
+            verticalLabelRotation={30}
+          />
 
-        <Text>Total Income: ${totalIncome}</Text>
-        <Text>Total Expenses: ${totalExpenses}</Text>
-        <Text>Total Balance: ${totalIncome - totalExpenses}</Text>
-      </View>
+          <Card style={{ marginBottom: 20 }}>
+            <Card.Content>
+              <DataTable>
+                <DataTable.Header>
+                  <DataTable.Title>Category</DataTable.Title>
+                  <DataTable.Title numeric>Amount </DataTable.Title>
+                  <DataTable.Title>Date</DataTable.Title>
+                </DataTable.Header>
+
+                {transactions?.map((transaction, index) => (
+                  <DataTable.Row key={index}>
+                    <DataTable.Cell>{transaction?.category}</DataTable.Cell>
+                    <DataTable.Cell numeric>${transaction?.amount}  </DataTable.Cell>
+                    <DataTable.Cell>{transaction?.date}</DataTable.Cell>
+                  </DataTable.Row>
+                ))}
+              </DataTable>
+            </Card.Content>
+          </Card>
+
+          <Text>Total Income: ${totalIncome}</Text>
+          <Text>Total Expenses: ${totalExpenses}</Text>
+          <Text>Total Balance: ${totalIncome - totalExpenses}</Text>
+        </View>
       </ScrollView>
     </>
   );
 };
 
 export default TransactionsPage;
+
+const chartConfig = {
+  backgroundGradientFrom: '#fff',
+  backgroundGradientTo: '#fff',
+  decimalPlaces: 0,
+  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+};
+
+const styles = StyleSheet.create({
+  chart: {
+    marginBottom: 20,
+  },
+})
