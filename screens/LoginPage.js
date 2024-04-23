@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { TextInput, Snackbar } from 'react-native-paper';
+import users from '../users.json';
 
 // Component for the login page
 const LoginPage = ({ navigation }) => {
 
   // State variables to manage username and password inputs
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('password');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
 
   // Function to handle login button press
   const handleLogin = () => {
-    if (username === 'admin' && password === 'password') {
-      navigation.navigate('Transactions');
+     // Check if the provided credentials match any user data from JSON
+    const user = users.find(user => user.username === username && user.password === password);
+    
+    if (user) {
+      navigation.navigate('Transactions'); // Navigate to the transactions page if credentials are correct
     } else {
       setSnackbarVisible(true); // Show error message if credentials are incorrect
     }
